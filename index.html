@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zylite Scripts</title>
+    <link rel="icon" type="image/png" href="Zylite.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg:        #111111;
+            --sb-bg:     #111111;
+            --text:      #cecece;
+            --text-sub:  #737373;
+            --text-dim:  #424242;
+            --border:    rgba(255,255,255,0.055);
+            --hover-bg:  rgba(255,255,255,0.045);
+            --active-bg: rgba(255,255,255,0.08);
+            --ease:      cubic-bezier(.25,.1,.25,1);
+            --danger:    rgba(255,80,80,0.7);
+            --success:   rgba(100,200,140,0.85);
+            --radius-sm: 7px;
+            --radius-md: 9px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            background: var(--bg);
+            font-family: 'Inter', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+        * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
+
+        /* ── Layout ── */
+        #root {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 0 20px 40px;
+        }
+
+        /* ── Search / Toolbar ── */
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* search */
+        .search-input {
+            flex: 1;
+            min-width: 140px;
+            height: 32px;
+            padding: 0 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            outline: none;
+            transition: border-color .15s, background .15s;
+        }
+        .search-input::placeholder { color: var(--text-dim); }
+        .search-input:focus {
+            border-color: rgba(255,255,255,0.14);
+            background: var(--hover-bg);
+        }
+
+        /* select dropdowns */
+        .filter-select {
+            height: 32px;
+            padding: 0 28px 0 10px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-sub);
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%23424242' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 9px center;
+            transition: border-color .15s, color .15s;
+        }
+        .filter-select:hover { border-color: rgba(255,255,255,0.1); color: var(--text); }
+        .filter-select option { background: #1a1a1a; }
+
+        /* tab switcher */
+        .tabs {
+            display: flex;
+            gap: 2px;
+            background: var(--hover-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 3px;
+        }
+        .tab {
+            height: 26px;
+            padding: 0 12px;
+            border-radius: 5px;
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 400;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            transition: background .13s, color .13s;
+        }
+        .tab:hover { background: var(--hover-bg); color: var(--text); }
+        .tab.active {
+            background: var(--active-bg);
+            color: #e8e8e8;
+            font-weight: 500;
+        }
+        .tab i { font-size: 11px; }
+
+        /* ── Grid ── */
+        .scripts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1px;
+            margin-top: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            animation: fadeIn .3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+        /* ── Script Card ── */
+        .script-card {
+            background: var(--bg);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            animation: cardIn .25s var(--ease) forwards;
+            transition: background .13s var(--ease);
+            overflow: hidden;
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: none; }
+        }
+        .script-card:hover { background: var(--hover-bg); }
+
+        .script-image-wrap {
+            width: 100%;
+            height: 160px;
+            overflow: hidden;
+            position: relative;
+            background: #0c0c0c;
+            flex-shrink: 0;
+        }
+        .script-image-wrap::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 60%;
+            background: linear-gradient(to top, var(--bg), transparent);
+            pointer-events: none;
+        }
+        .script-image {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: .75;
+            transition: opacity .2s, transform .3s var(--ease);
+        }
+        .script-card:hover .script-image { opacity: .9; transform: scale(1.04); }
+
+        /* badge */
+        .script-badge {
+            position: absolute;
+            top: 10px; right: 10px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-sub);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            z-index: 2;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* remove btn (saved tab) */
+        .remove-btn {
+            position: absolute;
+            top: 10px; left: 10px;
+            background: rgba(255,60,60,0.12);
+            border: 1px solid rgba(255,60,60,0.2);
+            color: var(--danger);
+            border-radius: 4px;
+            width: 24px; height: 24px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            z-index: 2;
+            font-size: 10px;
+            transition: opacity .13s, background .13s;
+        }
+        .script-card:hover .remove-btn { opacity: 1; }
+        .remove-btn:hover { background: rgba(255,60,60,0.22); }
+
+        .script-body {
+            padding: 12px 14px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .script-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+        .script-game {
+            font-size: 12px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .script-game i { font-size: 10px; }
+        .script-stats {
+            display: flex;
+            gap: 14px;
+            padding-top: 4px;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .stat i { font-size: 10px; }
+
+        /* ── Empty State ── */
+        .empty-state {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            gap: 10px;
+            text-align: center;
+            background: var(--bg);
+        }
+        .empty-state i {
+            font-size: 22px;
+            color: var(--text-dim);
+            opacity: .5;
+        }
+        .empty-state h3 {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-sub);
+        }
+        .empty-state p {
+            font-size: 12px;
+            color: var(--text-dim);
+            max-width: 300px;
+            line-height: 1.7;
+        }
+
+        /* ── Content sections ── */
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        /* ── Modal ── */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 20px;
+            opacity: 0;
+            transition: opacity .2s var(--ease);
+        }
+        .modal.active { display: flex; opacity: 1; }
+
+        .modal-box {
+            background: #161616;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            width: 100%;
+            max-width: 480px;
+            max-height: 88vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(12px) scale(.98);
+            transition: transform .22s var(--ease);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+        }
+        .modal.active .modal-box { transform: none; }
+
+        .modal-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            opacity: .7;
+            background: #0c0c0c;
+            flex-shrink: 0;
+        }
+
+        .modal-header {
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .modal-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+            line-height: 1.3;
+            flex: 1;
+        }
+        .modal-close {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            width: 28px; height: 28px;
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-size: 13px;
+            transition: background .13s, color .13s, border-color .13s;
+        }
+        .modal-close:hover { background: var(--hover-bg); color: var(--text); border-color: rgba(255,255,255,0.1); }
+
+        .modal-body {
+            padding: 16px 20px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .modal-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .modal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--hover-bg);
+            border: 1px solid var(--border);
+            color: var(--text-sub);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.04em;
+        }
+        .modal-badge.free { border-color: rgba(100,200,140,0.2); color: rgba(100,200,140,0.8); }
+        .modal-badge.paid { border-color: rgba(240,180,80,0.2); color: rgba(240,180,80,0.8); }
+
+        .modal-game {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .modal-script {
+            background: #0d0d0d;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #8f8f8f;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 280px;
+            overflow-y: auto;
+            line-height: 1.7;
+            display: none;
+        }
+
+        .modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            height: 32px;
+            padding: 0 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-sub);
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 400;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            transition: background .13s, border-color .13s, color .13s, transform .1s;
+        }
+        .btn:hover {
+            background: var(--hover-bg);
+            border-color: rgba(255,255,255,0.1);
+            color: var(--text);
+            transform: translateY(-1px);
+        }
+        .btn:active { transform: none; }
+        .btn i { font-size: 11px; }
+
+        .btn-primary {
+            background: var(--active-bg);
+            border-color: rgba(255,255,255,0.1);
+            color: var(--text);
+        }
+        .btn-primary:hover {
+            background: rgba(255,255,255,0.12);
+        }
+
+        .btn-saved {
+            border-color: rgba(100,200,140,0.25);
+            color: rgba(100,200,140,0.75);
+        }
+        .btn-saved:hover { background: rgba(100,200,140,0.06); }
+
+        /* ── Toast ── */
+        #toasts {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: center;
+            pointer-events: none;
+        }
+        .tst {
+            display: flex; align-items: center; gap: 7px;
+            background: rgba(18,18,18,.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 8px;
+            padding: 7px 12px;
+            box-shadow: 0 4px 18px rgba(0,0,0,.5);
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            color: rgba(255,255,255,.5);
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateY(6px) scale(.97);
+            transition: opacity .18s var(--ease), transform .18s var(--ease);
+            position: relative; overflow: hidden;
+        }
+        .tst.show { opacity: 1; transform: none; }
+        .tst.hide { opacity: 0; transform: translateY(4px) scale(.97); }
+        .tst i { font-size: 10px; color: rgba(255,255,255,.3); }
+        .tst-bar { position: absolute; bottom: 0; left: 0; height: 1px; width: 100%; }
+        .tst-fill { height: 100%; background: rgba(255,255,255,.1); animation: tstshrink var(--d, 1.8s) linear forwards; }
+        @keyframes tstshrink { from { width: 100% } to { width: 0 } }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            #root { padding: 0 12px 32px; }
+            .toolbar { gap: 6px; }
+            .filter-select { display: none; }
+            .scripts-grid { grid-template-columns: 1fr; }
+            .modal-footer { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div id="root">
+
+    <!-- Modal -->
+    <div class="modal" id="scriptModal">
+        <div class="modal-box">
+            <img src="" alt="" class="modal-img" id="modalImage">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Script Details</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-meta">
+                    <span class="modal-badge" id="modalBadge"><i class="fas fa-key"></i> Keyed</span>
+                    <span class="modal-game" id="modalGame"><i class="fas fa-gamepad"></i> Game</span>
+                </div>
+                <div class="modal-script" id="modalScript"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="saveScriptBtn"><i class="fas fa-bookmark"></i> Save</button>
+                <button class="btn btn-primary" id="copyScriptBtn"><i class="fas fa-copy"></i> Copy script</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <input class="search-input" type="text" id="searchInput" placeholder="Search scripts...">
+            <select class="filter-select" id="scriptType">
+                <option value="">All types</option>
+                <option value="free">Free</option>
+                <option value="paid">Paid</option>
+            </select>
+            <select class="filter-select" id="sortBy">
+                <option value="updatedAt">Recent</option>
+                <option value="views">Popular</option>
+            </select>
+        </div>
+        <div class="tabs">
+            <button class="tab active" data-tab="cloud"><i class="fas fa-cloud"></i> Cloud</button>
+            <button class="tab" data-tab="saved"><i class="fas fa-bookmark"></i> Saved</button>
+        </div>
+    </div>
+
+    <!-- Cloud section -->
+    <div class="content-section active" id="cloudScripts">
+        <div class="scripts-grid" id="scriptsContainer">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <h3>Loading scripts…</h3>
+                <p>Fetching the latest scripts from the cloud.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved section -->
+    <div class="content-section" id="savedScripts">
+        <div class="scripts-grid" id="localScriptsGrid">
+            <div class="empty-state">
+                <i class="fas fa-bookmark"></i>
+                <h3>No saved scripts</h3>
+                <p>Save scripts by clicking the bookmark button in a script's modal.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+    let scriptsData = [];
+    let currentScript = null;
+    let currentTab = 'cloud';
+    const proxies = [
+        'https://api.codetabs.com/v1/proxy/?quest=',
+        'https://thingproxy.freeboard.io/fetch/',
+        'https://corsproxy.io/?'
+    ];
+    let currentProxy = 0;
+
+    /* ─── Toast ─── */
+    function toast(msg, dur = 1900) {
+        const wrap = document.getElementById('toasts');
+        const el = document.createElement('div');
+        el.className = 'tst';
+        el.style.setProperty('--d', dur + 'ms');
+        el.innerHTML = `<i class="fas fa-check"></i>${esc(msg)}<div class="tst-bar"><div class="tst-fill"></div></div>`;
+        wrap.appendChild(el);
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+        setTimeout(() => { el.classList.remove('show'); el.classList.add('hide'); setTimeout(() => el.remove(), 220); }, dur);
+    }
+
+    /* ─── Local storage ─── */
+    function getLocalScripts() {
+        try { return JSON.parse(localStorage.getItem('savedScripts') || '[]'); } catch { return []; }
+    }
+    function saveLocalScript(script) {
+        const list = getLocalScripts();
+        if (list.some(s => s.title === script.title && s.script === script.script)) return false;
+        list.push(script);
+        localStorage.setItem('savedScripts', JSON.stringify(list));
+        return true;
+    }
+    function removeLocalScript(idx) {
+        const list = getLocalScripts();
+        list.splice(idx, 1);
+        localStorage.setItem('savedScripts', JSON.stringify(list));
+        renderLocalScripts();
+    }
+
+    /* ─── Placeholder SVG ─── */
+    const PLACEHOLDER = 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="320" height="160"><rect width="320" height="160" fill="#0c0c0c"/><text x="50%" y="50%" font-family="monospace" font-size="12" fill="#2a2a2a" text-anchor="middle" dominant-baseline="middle">no image</text></svg>`);
+
+    function imgUrl(raw) {
+        if (!raw) return PLACEHOLDER;
+        return raw.startsWith('http') ? raw : 'https://scriptblox.com' + raw;
+    }
+
+    /* ─── Card HTML ─── */
+    function cardHTML(script, idx, isLocal) {
+        const delay = (idx * 0.04) + 's';
+        const title  = esc(script.title || 'Untitled');
+        const game   = esc(script.game?.name || script.game || 'No game');
+        const views  = script.views ? Number(script.views).toLocaleString() : '—';
+        const likes  = script.likeCount ? Number(script.likeCount).toLocaleString() : '—';
+        const date   = script.updatedAt || script.date ? new Date(script.updatedAt || script.date).toLocaleDateString() : '—';
+        const img    = imgUrl(script.image);
+        const badge  = (script.paid || script.key) ? `<span class="script-badge">keyed</span>` : '';
+        const remBtn = isLocal ? `<button class="remove-btn" data-index="${idx}"><i class="fas fa-times"></i></button>` : '';
+
+        return `
+          <div class="script-card" style="animation-delay:${delay}" data-index="${idx}">
+            ${badge}${remBtn}
+            <div class="script-image-wrap">
+              <img class="script-image" src="${img}" onerror="this.src='${PLACEHOLDER}'" alt="">
+            </div>
+            <div class="script-body">
+              <div class="script-title" title="${title}">${title}</div>
+              <div class="script-game"><i class="fas fa-gamepad"></i>${game}</div>
+              ${!isLocal ? `<div class="script-stats">
+                <div class="stat"><i class="fas fa-eye"></i>${views}</div>
+                <div class="stat"><i class="fas fa-thumbs-up"></i>${likes}</div>
+                <div class="stat"><i class="fas fa-calendar-alt"></i>${date}</div>
+              </div>` : `<div class="script-stats"><div class="stat"><i class="fas fa-calendar-alt"></i>${date}</div></div>`}
+            </div>
+          </div>`;
+    }
+
+    /* ─── Render cloud ─── */
+    function renderScripts() {
+        const container = document.getElementById('scriptsContainer');
+        if (!scriptsData.length) {
+            container.innerHTML = `<div class="empty-state"><i class="fas fa-search"></i><h3>No scripts found</h3><p>Try adjusting your search or filters.</p></div>`;
+            return;
+        }
+        container.innerHTML = scriptsData.map((s, i) => cardHTML(s, i, false)).join('');
+        container.querySelectorAll('.script-card').forEach(card => {
+            card.addEventListener('click', e => {
+                if (e.target.closest('button')) return;
+                openModal(parseInt(card.dataset.index), false);
+            });
+        });
+    }
+
+    /* ─── Render saved ─── */
+    function renderLocalScripts() {
+        const container = document.getElementById('localScriptsGrid');
+        const list = getLocalScripts();
+        if (!list.length) {
+            container.innerHTML = `<div class="empty-state"><i class="fas fa-bookmark"></i><h3>No saved scripts</h3><p>Save scripts by clicking the bookmark button in a script's modal.</p></div>`;
+            return;
+        }
+        container.innerHTML = list.map((s, i) => cardHTML(s, i, true)).join('');
+        container.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                removeLocalScript(parseInt(btn.dataset.index));
+                toast('Script removed');
+            });
+        });
+        container.querySelectorAll('.script-card').forEach(card => {
+            card.addEventListener('click', e => {
+                if (e.target.closest('button')) return;
+                openModal(parseInt(card.dataset.index), true);
+            });
+        });
+    }
+
+    /* ─── Modal ─── */
+    function openModal(idx, isLocal) {
+        const script = isLocal ? getLocalScripts()[idx] : scriptsData[idx];
+        if (!script) return;
+        currentScript = { ...script, isLocal };
+
+        document.getElementById('modalImage').src = imgUrl(script.image);
+        document.getElementById('modalTitle').textContent = script.title || 'Untitled';
+
+        const isPaid = script.paid || script.key;
+        const badge  = document.getElementById('modalBadge');
+        badge.className = 'modal-badge ' + (isPaid ? 'paid' : 'free');
+        badge.innerHTML = isPaid ? '<i class="fas fa-key"></i> Keyed' : '<i class="fas fa-unlock"></i> Free';
+
+        const gameName = script.game?.name || script.game || 'No game specified';
+        document.getElementById('modalGame').innerHTML = `<i class="fas fa-gamepad"></i> ${esc(gameName)}`;
+
+        const isSaved = getLocalScripts().some(s => s.title === script.title && s.script === script.script);
+        const saveBtn = document.getElementById('saveScriptBtn');
+        if (isSaved) {
+            saveBtn.className = 'btn btn-saved';
+            saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved';
+        } else {
+            saveBtn.className = 'btn';
+            saveBtn.innerHTML = '<i class="fas fa-bookmark"></i> Save';
+        }
+
+        document.getElementById('scriptModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        document.getElementById('scriptModal').classList.remove('active');
+        document.body.style.overflow = '';
+        currentScript = null;
+    }
+
+    /* ─── Fetch ─── */
+    async function fetchWithRetry(url, retries = 3) {
+        try {
+            const res = await fetch(proxies[currentProxy] + encodeURIComponent(url), { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        } catch (e) {
+            if (retries > 0) {
+                currentProxy = (currentProxy + 1) % proxies.length;
+                await new Promise(r => setTimeout(r, 800));
+                return fetchWithRetry(url, retries - 1);
+            }
+            throw e;
+        }
+    }
+
+    async function loadScripts(search = '', page = 1) {
+        const container = document.getElementById('scriptsContainer');
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><h3>Loading…</h3><p>Fetching scripts from the cloud.</p></div>`;
+
+        const scriptType = document.getElementById('scriptType').value;
+        const sortBy     = document.getElementById('sortBy').value;
+        let url = search
+            ? `https://scriptblox.com/api/script/search?q=${encodeURIComponent(search)}&page=${page}&max=100`
+            : `https://scriptblox.com/api/script/fetch?page=${page}&max=100`;
+        if (scriptType) url += `&mode=${scriptType}`;
+        if (sortBy)     url += `&sortBy=${sortBy}`;
+
+        try {
+            let data;
+            try { const r = await fetch(url); data = await r.json(); } catch { data = await fetchWithRetry(url); }
+
+            if (data?.result?.scripts) { scriptsData = data.result.scripts; }
+            else if (Array.isArray(data)) { scriptsData = data; }
+            else { scriptsData = []; }
+            renderScripts();
+        } catch (e) {
+            container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>Failed to load</h3><p>Couldn't connect. Check your connection and try again.</p></div>`;
+        }
+    }
+
+    /* ─── Tabs ─── */
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+        document.querySelectorAll('.content-section').forEach(s => s.classList.toggle('active', s.id === tab + 'Scripts'));
+        if (tab === 'saved') renderLocalScripts();
+    }
+
+    /* ─── Debounce ─── */
+    function debounce(fn, ms) {
+        let t;
+        return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+    }
+
+    function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    /* ─── Init ─── */
+    document.addEventListener('DOMContentLoaded', () => {
+        loadScripts();
+
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', debounce(() => loadScripts(searchInput.value.trim()), 480));
+        searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') loadScripts(searchInput.value.trim()); });
+
+        document.getElementById('scriptType').addEventListener('change', () => loadScripts(searchInput.value.trim()));
+        document.getElementById('sortBy').addEventListener('change',     () => loadScripts(searchInput.value.trim()));
+
+        document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        document.getElementById('scriptModal').addEventListener('click', e => { if (e.target === document.getElementById('scriptModal')) closeModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+        document.getElementById('saveScriptBtn').addEventListener('click', () => {
+            if (!currentScript) return;
+            const saved = saveLocalScript({
+                title: currentScript.title,
+                script: currentScript.script,
+                game: currentScript.game?.name || currentScript.game || '',
+                image: currentScript.image,
+                date: new Date().toISOString()
+            });
+            const btn = document.getElementById('saveScriptBtn');
+            if (saved) {
+                btn.className = 'btn btn-saved';
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved';
+                toast('Saved to collection');
+                if (currentTab === 'saved') renderLocalScripts();
+            } else {
+                toast('Already in your collection');
+            }
+        });
+
+        document.getElementById('copyScriptBtn').addEventListener('click', () => {
+            if (!currentScript) return;
+            navigator.clipboard.writeText(currentScript.script || '').then(() => toast('Copied to clipboard')).catch(() => toast('Copy failed'));
+        });
+    });
+</script>
+</body>
+</html>
