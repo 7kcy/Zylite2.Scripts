@@ -887,6 +887,33 @@
             navigator.clipboard.writeText(currentScript.script || '').then(() => toast('Copied to clipboard')).catch(() => toast('Copy failed'));
         });
     });
+
+    /* ════════════════════════════
+       THEME ENGINE
+       Called from C#: window.setTheme(r, g, b)
+    ════════════════════════════ */
+    window.setTheme = function(r, g, b) {
+        const lum  = (0.299*r + 0.587*g + 0.114*b) / 255;
+        const dark = lum < 0.5;
+
+        const text     = dark ? 'rgba(210,210,210,1)'    : 'rgba(30,30,30,1)';
+        const textSub  = dark ? 'rgba(130,130,130,1)'    : 'rgba(90,90,90,1)';
+        const textDim  = dark ? 'rgba(70,70,70,1)'       : 'rgba(150,150,150,1)';
+        const border   = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)';
+        const hoverBg  = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+        const activeBg = dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)';
+
+        const root = document.documentElement;
+        root.style.setProperty('--text',      text);
+        root.style.setProperty('--text-sub',  textSub);
+        root.style.setProperty('--text-dim',  textDim);
+        root.style.setProperty('--border',    border);
+        root.style.setProperty('--hover-bg',  hoverBg);
+        root.style.setProperty('--active-bg', activeBg);
+
+        // Update body text color directly too
+        document.body.style.color = text;
+    };
 </script>
 </body>
 </html>
