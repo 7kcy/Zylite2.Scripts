@@ -29,7 +29,7 @@
 
         html, body {
             height: 100%;
-            background: var(--bg);
+            background: transparent;
             font-family: 'Inter', system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
             color: var(--text);
@@ -58,7 +58,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: var(--bg);
+            background: transparent;
             border-bottom: 1px solid var(--border);
             padding: 10px 0;
             display: flex;
@@ -164,7 +164,7 @@
 
         /* ── Script Card ── */
         .script-card {
-            background: #161616;
+            background: rgba(255,255,255,0.04);
             border: 1px solid var(--border);
             border-radius: 10px;
             cursor: pointer;
@@ -181,7 +181,7 @@
             to   { opacity: 1; transform: none; }
         }
         .script-card:hover {
-            background: #1b1b1b;
+            background: rgba(255,255,255,0.07);
             border-color: rgba(255,255,255,0.1);
             transform: translateY(-2px);
             box-shadow: 0 8px 28px rgba(0,0,0,0.45);
@@ -192,7 +192,7 @@
             height: 170px;
             overflow: hidden;
             position: relative;
-            background: #0d0d0d;
+            background: rgba(0,0,0,0.25);
             flex-shrink: 0;
             border-radius: 9px 9px 0 0;
         }
@@ -201,11 +201,11 @@
             position: absolute;
             bottom: 0; left: 0; right: 0;
             height: 55%;
-            background: linear-gradient(to top, #161616, transparent);
+            background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
             pointer-events: none;
         }
         .script-card:hover .script-image-wrap::after {
-            background: linear-gradient(to top, #1b1b1b, transparent);
+            background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
         }
         .script-image {
             width: 100%; height: 100%;
@@ -349,7 +349,9 @@
         .modal.active { display: flex; opacity: 1; }
 
         .modal-box {
-            background: #161616;
+            background: rgba(22,22,22,0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
             width: 100%;
@@ -369,7 +371,7 @@
             height: 220px;
             object-fit: cover;
             opacity: .7;
-            background: #0c0c0c;
+            background: rgba(0,0,0,0.3);
             flex-shrink: 0;
         }
 
